@@ -226,11 +226,11 @@ retrieve_relevant_schemas(question, top_k=2)  # Retrieve 2 tables
 
 ## 📚 Learn More
 
-- **[TECHNICAL_EXPLANATION.md](TECHNICAL_EXPLANATION.md)** - Deep dive into RAG, agents, and concepts
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup and testing instructions
-- **[DATABASE_GUIDE.md](DATABASE_GUIDE.md)** - Understanding SQLite and your database
-- **[VISUAL_GUIDE.md](VISUAL_GUIDE.md)** - Architecture diagrams and data flow
-- **[MODEL_INFO.md](MODEL_INFO.md)** - LLM model information and alternatives
+- **[Technical Explanation](docs/TECHNICAL_EXPLANATION.md)** - Deep dive into RAG, agents, and concepts
+- **[Setup Guide](docs/SETUP_GUIDE.md)** - Detailed setup and testing instructions
+- **[Database Guide](docs/DATABASE_GUIDE.md)** - Understanding SQLite and your database
+- **[Visual Guide](docs/VISUAL_GUIDE.md)** - Architecture diagrams and data flow
+- **[Model Info](docs/MODEL_INFO.md)** - LLM model information and alternatives
 
 ---
 
