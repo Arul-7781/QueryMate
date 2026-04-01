@@ -22,6 +22,7 @@ import time
 import argparse
 import csv
 import itertools
+from collections import Counter
 from datetime import datetime
 
 # Ensure the project root is on the path so we can import src/
@@ -60,15 +61,109 @@ def normalise_value(v):
 
 def normalise_rows(rows):
     """
-    Convert a list of rows into a canonical frozenset of tuples so order
-    does not matter.  Also normalises floats.
+    Convert a list of rows into a canonical multiset (Counter of tuples)
+    so order does not matter, while duplicate row counts are preserved.
+    Also normalises floats.
     """
     if rows is None:
         return None
     normalised = []
     for row in rows:
         normalised.append(tuple(normalise_value(v) for v in row))
-    return frozenset(normalised)
+    return Counter(normalised)
+
+
+def _projection_match(source_rows, target_rows, max_source_cols=10):
+    """
+    Returns True if some projection of source_rows can equal target_rows.
+
+    Use this for column-tolerant denotation checks:
+    - source -> target where source has equal/more columns.
+    """
+    if source_rows is None or target_rows is None:
+        return False
+
+    if len(source_rows) == 0 or len(target_rows) == 0:
+        return False
+
+    if len(source_rows) != len(target_rows):
+        return False
+
+    src_cols = len(source_rows[0])
+    tgt_cols = len(target_rows[0])
+
+    if tgt_cols > src_cols:
+        return False
+
+    if src_cols > max_source_cols:
+        return False
+
+    target_norm = normalise_rows(target_rows)
+    for col_idx in itertools.combinations(range(src_cols), tgt_cols):
+        projected = [tuple(row[i] for i in col_idx) for row in source_rows]
+        if normalise_rows(projected) == target_norm:
+            return True
+
+    return False
+
+
+def classify_result_match(expected_rows, actual_rows):
+    """
+    Classify denotation match and return multi-metric signals.
+
+    Match types:
+    - exact: exact row-set equality
+    - actual_superset_projection: generated SQL returned extra columns
+    - actual_subset_projection: generated SQL returned fewer columns but
+      still corresponds to a valid projection of expected rows
+    - none: no denotation alignment
+    """
+    out = {
+        "legacy_match": False,
+        "relaxed_match": False,
+        "partial_credit": 0.0,
+        "match_type": "none",
+    }
+
+    if expected_rows is None or actual_rows is None:
+        return out
+
+    expected_norm = normalise_rows(expected_rows)
+    actual_norm = normalise_rows(actual_rows)
+
+    if expected_norm == actual_norm:
+        out.update({
+            "legacy_match": True,
+            "relaxed_match": True,
+            "partial_credit": 1.0,
+            "match_type": "exact",
+        })
+        return out
+
+    if len(expected_rows) == 0 or len(actual_rows) == 0:
+        return out
+
+    # Legacy behavior: generated SQL may include extra columns.
+    if _projection_match(actual_rows, expected_rows):
+        out.update({
+            "legacy_match": True,
+            "relaxed_match": True,
+            "partial_credit": 1.0,
+            "match_type": "actual_superset_projection",
+        })
+        return out
+
+    # Relaxed behavior: generated SQL may omit non-essential columns.
+    if _projection_match(expected_rows, actual_rows):
+        out.update({
+            "legacy_match": False,
+            "relaxed_match": True,
+            "partial_credit": 0.5,
+            "match_type": "actual_subset_projection",
+        })
+        return out
+
+    return out
 
 
 def results_match(expected_rows, actual_rows):
@@ -82,39 +177,7 @@ def results_match(expected_rows, actual_rows):
     This is more faithful to execution accuracy for NL-to-SQL settings where
     an answer can be semantically correct despite extra projected columns.
     """
-    if expected_rows is None or actual_rows is None:
-        return False
-
-    expected_norm = normalise_rows(expected_rows)
-    actual_norm = normalise_rows(actual_rows)
-
-    # Fast path: exact match
-    if expected_norm == actual_norm:
-        return True
-
-    # If either side is empty after normalization, exact path already handled it
-    if len(expected_rows) == 0 or len(actual_rows) == 0:
-        return False
-
-    # Projection-tolerant path: same number of rows and expected has <= columns
-    exp_cols = len(expected_rows[0])
-    act_cols = len(actual_rows[0])
-    if len(expected_rows) != len(actual_rows):
-        return False
-    if exp_cols > act_cols:
-        return False
-
-    # Try all column subsets from actual rows that match expected width.
-    # Keep this practical; our generated SQL here is typically narrow.
-    if act_cols > 10:
-        return False
-
-    for col_idx in itertools.combinations(range(act_cols), exp_cols):
-        projected = [tuple(row[i] for i in col_idx) for row in actual_rows]
-        if normalise_rows(projected) == expected_norm:
-            return True
-
-    return False
+    return classify_result_match(expected_rows, actual_rows)["legacy_match"]
 
 
 def colour(text, code):
@@ -136,11 +199,15 @@ def run_evaluation(test_cases: list[dict]) -> dict:
     os.makedirs(RESULTS_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    total    = len(test_cases)
-    passed   = 0
-    failed   = 0
-    errors   = 0   # LLM failed to produce executable SQL
-    details  = []
+    total                = len(test_cases)
+    passed               = 0  # relaxed pass count (primary)
+    failed               = 0  # relaxed fail count (primary)
+    strict_passed        = 0  # legacy strict pass count
+    strict_failed        = 0  # legacy strict fail count
+    partial_projection   = 0  # subset-projection passes
+    partial_credit_total = 0.0
+    errors               = 0   # LLM failed to produce executable SQL
+    details              = []
 
     print(BOLD(f"\n{'─'*60}"))
     print(BOLD(f"  QueryMate Golden Set Evaluation  ({total} queries)"))
@@ -159,8 +226,9 @@ def run_evaluation(test_cases: list[dict]) -> dict:
         expected_rows, gold_err = execute_sql(golden_sql)
         if gold_err:
             print(WARN(f"     ⚠  Golden SQL error: {gold_err}"))
-            details.append(_make_detail(tc, "GOLD_ERROR", None, None,
-                                        gold_err, None, None))
+            details.append(_make_detail(tc, "GOLD_ERROR", "GOLD_ERROR", None, None,
+                                        gold_err, None, None,
+                                        match_type="none", partial_credit=0.0))
             errors += 1
             continue
 
@@ -171,8 +239,9 @@ def run_evaluation(test_cases: list[dict]) -> dict:
         except Exception as e:
             elapsed = time.time() - t_start
             print(FAIL(f"     ✗  Agent exception: {e}"))
-            details.append(_make_detail(tc, "AGENT_ERROR", None, None,
-                                        str(e), elapsed, None))
+            details.append(_make_detail(tc, "AGENT_ERROR", "AGENT_ERROR", None, None,
+                                        str(e), elapsed, None,
+                                        match_type="none", partial_credit=0.0))
             errors += 1
             time.sleep(SLEEP_BETWEEN)
             continue
@@ -187,9 +256,10 @@ def run_evaluation(test_cases: list[dict]) -> dict:
         #    to see if it's actually correct despite the reported failure.
         if agent_status in ("error", "failed") or not generated_sql:
             print(FAIL(f"     ✗  Agent returned error — {result.get('data', '')}"))
-            details.append(_make_detail(tc, "AGENT_ERROR", generated_sql,
+            details.append(_make_detail(tc, "AGENT_ERROR", "AGENT_ERROR", generated_sql,
                                         agent_data, result.get("data", ""),
-                                        elapsed, expected_rows))
+                                        elapsed, expected_rows,
+                                        match_type="none", partial_credit=0.0))
             errors += 1
             time.sleep(SLEEP_BETWEEN)
             continue
@@ -201,20 +271,37 @@ def run_evaluation(test_cases: list[dict]) -> dict:
             agent_error = exec_err
             print(FAIL(f"     ✗  Generated SQL error: {exec_err}"))
             print(f"          SQL: {generated_sql[:120]}")
-            details.append(_make_detail(tc, "SQL_ERROR", generated_sql,
+            details.append(_make_detail(tc, "FAIL", "FAIL", generated_sql,
                                         actual_rows, exec_err, elapsed,
-                                        expected_rows))
+                                        expected_rows,
+                                        match_type="none", partial_credit=0.0))
             failed += 1
+            strict_failed += 1
             time.sleep(SLEEP_BETWEEN)
             continue
 
         # 5. Compare result sets
-        match = results_match(expected_rows, actual_rows)
-        outcome = "PASS" if match else "FAIL"
+        match_info = classify_result_match(expected_rows, actual_rows)
+        relaxed_match = match_info["relaxed_match"]
+        legacy_match = match_info["legacy_match"]
+        match_type = match_info["match_type"]
+        partial_credit = match_info["partial_credit"]
 
-        if match:
+        outcome = "PASS" if relaxed_match else "FAIL"
+        strict_outcome = "PASS" if legacy_match else "FAIL"
+
+        if relaxed_match:
             passed += 1
-            print(PASS(f"     ✓  PASS  ({elapsed:.1f}s)  rows={len(actual_rows)}"))
+            if legacy_match:
+                print(PASS(f"     ✓  PASS  ({elapsed:.1f}s)  rows={len(actual_rows)}"))
+            else:
+                partial_projection += 1
+                print(WARN(f"     △  PASS (projection-subset)  ({elapsed:.1f}s)  rows={len(actual_rows)}"))
+                exp_rows_str = str(list(expected_rows)[:3])
+                act_rows_str = str(list(actual_rows)[:3])
+                print(f"          Expected ({len(expected_rows)} rows): {exp_rows_str}{'...' if len(expected_rows)>3 else ''}")
+                print(f"          Got      ({len(actual_rows)} rows): {act_rows_str}{'...' if len(actual_rows)>3 else ''}")
+                print(f"          Note: Same row denotation on a projected subset of expected columns.")
         else:
             failed += 1
             exp_rows_str = str(list(expected_rows)[:3])
@@ -224,36 +311,61 @@ def run_evaluation(test_cases: list[dict]) -> dict:
             print(f"          Got      ({len(actual_rows)} rows): {act_rows_str}{'...' if len(actual_rows)>3 else ''}")
             print(f"          Gen SQL: {generated_sql[:120]}")
 
-        details.append(_make_detail(tc, outcome, generated_sql, actual_rows,
-                                    agent_error, elapsed, expected_rows))
+        if legacy_match:
+            strict_passed += 1
+        else:
+            strict_failed += 1
+
+        partial_credit_total += partial_credit
+
+        details.append(_make_detail(tc, outcome, strict_outcome, generated_sql,
+                                    actual_rows, agent_error, elapsed, expected_rows,
+                                    match_type=match_type, partial_credit=partial_credit))
 
         time.sleep(SLEEP_BETWEEN)
 
     # ── Summary ────────────────────────────────────────────────────────────────
-    accuracy = passed / (total - errors) if (total - errors) > 0 else 0.0
+    evaluated = total - errors
+    accuracy = passed / evaluated if evaluated > 0 else 0.0
+    strict_accuracy = strict_passed / evaluated if evaluated > 0 else 0.0
+    partial_credit_accuracy = partial_credit_total / evaluated if evaluated > 0 else 0.0
 
     print(BOLD(f"\n{'─'*60}"))
     print(BOLD(f"  RESULTS"))
     print(f"  Total Queries  : {total}")
-    print(PASS(f"  Passed         : {passed}"))
-    print(FAIL(f"  Failed         : {failed}"))
+    print(PASS(f"  Passed (relaxed)       : {passed}"))
+    print(FAIL(f"  Failed (relaxed)       : {failed}"))
+    print(PASS(f"  Passed (strict legacy) : {strict_passed}"))
+    print(FAIL(f"  Failed (strict legacy) : {strict_failed}"))
+    print(WARN(f"  Projection-subset pass : {partial_projection}"))
     print(WARN(f"  Errors (skip)  : {errors}"))
-    print(BOLD(f"  Execution Acc  : {accuracy:.1%}  ({passed}/{total - errors})"))
+    print(BOLD(f"  Execution Acc (relaxed) : {accuracy:.1%}  ({passed}/{evaluated})"))
+    print(BOLD(f"  Execution Acc (strict)  : {strict_accuracy:.1%}  ({strict_passed}/{evaluated})"))
+    print(BOLD(f"  Partial-Credit Accuracy : {partial_credit_accuracy:.1%}"))
     print(BOLD(f"{'─'*60}\n"))
 
-    # Break down by difficulty
-    _print_breakdown(details, "difficulty", ["easy", "medium", "hard"])
-    _print_breakdown(details, "category")
+    # Breakdown by difficulty/category on relaxed outcomes (primary metric)
+    _print_breakdown(details, "difficulty", ["easy", "medium", "hard"], outcome_key="outcome")
+    _print_breakdown(details, "category", outcome_key="outcome")
+
+    # Strict legacy breakdown for continuity with prior runs
+    _print_breakdown(details, "difficulty", ["easy", "medium", "hard"], outcome_key="strict_outcome")
+    _print_breakdown(details, "category", outcome_key="strict_outcome")
 
     # Save reports
     report = {
-        "timestamp"        : timestamp,
-        "total"            : total,
-        "passed"           : passed,
-        "failed"           : failed,
-        "errors"           : errors,
-        "execution_accuracy": round(accuracy, 4),
-        "details"          : details
+        "timestamp"               : timestamp,
+        "total"                   : total,
+        "passed"                  : passed,
+        "failed"                  : failed,
+        "errors"                  : errors,
+        "execution_accuracy"      : round(accuracy, 4),
+        "strict_passed"           : strict_passed,
+        "strict_failed"           : strict_failed,
+        "strict_execution_accuracy": round(strict_accuracy, 4),
+        "projection_subset_passed" : partial_projection,
+        "partial_credit_accuracy" : round(partial_credit_accuracy, 4),
+        "details"                 : details
     }
     _save_json(report, os.path.join(RESULTS_DIR, f"eval_{timestamp}.json"))
     _save_csv(details,  os.path.join(RESULTS_DIR, f"eval_{timestamp}.csv"))
@@ -277,17 +389,22 @@ def run_evaluation_ui(test_cases: list[dict], on_progress=None) -> dict:
     os.makedirs(RESULTS_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    total   = len(test_cases)
-    passed  = 0
-    failed  = 0
-    errors  = 0
-    details = []
+    total                = len(test_cases)
+    passed               = 0  # relaxed primary
+    failed               = 0
+    strict_passed        = 0
+    strict_failed        = 0
+    partial_projection   = 0
+    partial_credit_total = 0.0
+    errors               = 0
+    details              = []
 
     for i, tc in enumerate(test_cases, 1):
         # 1. Execute golden SQL
         expected_rows, gold_err = execute_sql(tc["sql"])
         if gold_err:
-            detail = _make_detail(tc, "GOLD_ERROR", None, None, gold_err, None, None)
+            detail = _make_detail(tc, "GOLD_ERROR", "GOLD_ERROR", None, None, gold_err,
+                                  None, None, match_type="none", partial_credit=0.0)
             details.append(detail)
             errors += 1
             if on_progress:
@@ -300,7 +417,8 @@ def run_evaluation_ui(test_cases: list[dict], on_progress=None) -> dict:
             result = run_query_agentic(tc["question"])
         except Exception as e:
             elapsed = time.time() - t_start
-            detail = _make_detail(tc, "AGENT_ERROR", None, None, str(e), elapsed, None)
+            detail = _make_detail(tc, "AGENT_ERROR", "AGENT_ERROR", None, None, str(e),
+                                  elapsed, None, match_type="none", partial_credit=0.0)
             details.append(detail)
             errors += 1
             if on_progress:
@@ -314,9 +432,10 @@ def run_evaluation_ui(test_cases: list[dict], on_progress=None) -> dict:
 
         # 3. Agent returned failure ("failed" = exhausted retries, "error" = other)
         if agent_status in ("error", "failed") or not generated_sql:
-            detail = _make_detail(tc, "AGENT_ERROR", generated_sql,
-                                  result.get("data", []),
-                                  result.get("data", ""), elapsed, expected_rows)
+            detail = _make_detail(tc, "AGENT_ERROR", "AGENT_ERROR", generated_sql,
+                                  result.get("data", []), result.get("data", ""),
+                                  elapsed, expected_rows,
+                                  match_type="none", partial_credit=0.0)
             details.append(detail)
             errors += 1
             if on_progress:
@@ -327,47 +446,85 @@ def run_evaluation_ui(test_cases: list[dict], on_progress=None) -> dict:
         # 4. Execute generated SQL
         actual_rows, exec_err = execute_sql(generated_sql)
         if exec_err:
-            detail = _make_detail(tc, "SQL_ERROR", generated_sql,
-                                  actual_rows, exec_err, elapsed, expected_rows)
+            detail = _make_detail(tc, "FAIL", "FAIL", generated_sql,
+                                  actual_rows, exec_err, elapsed, expected_rows,
+                                  match_type="none", partial_credit=0.0)
             details.append(detail)
             failed += 1
+            strict_failed += 1
             if on_progress:
                 on_progress(i, total, detail)
             time.sleep(SLEEP_BETWEEN)
             continue
 
         # 5. Compare result sets
-        match   = results_match(expected_rows, actual_rows)
-        outcome = "PASS" if match else "FAIL"
-        if match:
+        match_info = classify_result_match(expected_rows, actual_rows)
+        relaxed_match = match_info["relaxed_match"]
+        legacy_match = match_info["legacy_match"]
+        partial_credit = match_info["partial_credit"]
+        match_type = match_info["match_type"]
+
+        outcome = "PASS" if relaxed_match else "FAIL"
+        strict_outcome = "PASS" if legacy_match else "FAIL"
+
+        if relaxed_match:
             passed += 1
+            if match_type == "actual_subset_projection":
+                partial_projection += 1
         else:
             failed += 1
 
-        detail = _make_detail(tc, outcome, generated_sql, actual_rows,
-                              None, elapsed, expected_rows)
+        if legacy_match:
+            strict_passed += 1
+        else:
+            strict_failed += 1
+
+        partial_credit_total += partial_credit
+
+        detail = _make_detail(tc, outcome, strict_outcome, generated_sql, actual_rows,
+                              None, elapsed, expected_rows,
+                              match_type=match_type, partial_credit=partial_credit)
         details.append(detail)
         if on_progress:
             on_progress(i, total, detail)
 
         time.sleep(SLEEP_BETWEEN)
 
-    accuracy = passed / (total - errors) if (total - errors) > 0 else 0.0
+    evaluated = total - errors
+    accuracy = passed / evaluated if evaluated > 0 else 0.0
+    strict_accuracy = strict_passed / evaluated if evaluated > 0 else 0.0
+    partial_credit_accuracy = partial_credit_total / evaluated if evaluated > 0 else 0.0
     report = {
-        "timestamp"         : timestamp,
-        "total"             : total,
-        "passed"            : passed,
-        "failed"            : failed,
-        "errors"            : errors,
-        "execution_accuracy": round(accuracy, 4),
-        "details"           : details,
+        "timestamp"               : timestamp,
+        "total"                   : total,
+        "passed"                  : passed,
+        "failed"                  : failed,
+        "errors"                  : errors,
+        "execution_accuracy"      : round(accuracy, 4),
+        "strict_passed"           : strict_passed,
+        "strict_failed"           : strict_failed,
+        "strict_execution_accuracy": round(strict_accuracy, 4),
+        "projection_subset_passed" : partial_projection,
+        "partial_credit_accuracy" : round(partial_credit_accuracy, 4),
+        "details"                 : details,
     }
     _save_json(report, os.path.join(RESULTS_DIR, f"eval_{timestamp}.json"))
     _save_csv(details,  os.path.join(RESULTS_DIR, f"eval_{timestamp}.csv"))
     return report
 
 
-def _make_detail(tc, outcome, gen_sql, actual_rows, error, elapsed, expected_rows):
+def _make_detail(
+    tc,
+    outcome,
+    strict_outcome,
+    gen_sql,
+    actual_rows,
+    error,
+    elapsed,
+    expected_rows,
+    match_type="none",
+    partial_credit=0.0,
+):
     return {
         "id"           : tc["id"],
         "difficulty"   : tc["difficulty"],
@@ -376,6 +533,9 @@ def _make_detail(tc, outcome, gen_sql, actual_rows, error, elapsed, expected_row
         "golden_sql"   : tc["sql"],
         "generated_sql": gen_sql or "",
         "outcome"      : outcome,
+        "strict_outcome": strict_outcome,
+        "match_type"   : match_type,
+        "partial_credit": partial_credit,
         "expected_rows": len(expected_rows) if expected_rows is not None else None,
         "actual_rows"  : len(actual_rows)   if actual_rows  is not None else None,
         "error"        : error or "",
@@ -383,18 +543,20 @@ def _make_detail(tc, outcome, gen_sql, actual_rows, error, elapsed, expected_row
     }
 
 
-def _print_breakdown(details, key, order=None):
+def _print_breakdown(details, key, order=None, outcome_key="outcome"):
     from collections import defaultdict
     groups = defaultdict(lambda: {"pass": 0, "total": 0})
     for d in details:
-        if d["outcome"] in ("PASS", "FAIL"):
+        current_outcome = d.get(outcome_key)
+        if current_outcome in ("PASS", "FAIL"):
             g = d[key]
             groups[g]["total"] += 1
-            if d["outcome"] == "PASS":
+            if current_outcome == "PASS":
                 groups[g]["pass"] += 1
 
     keys = order if order else sorted(groups.keys())
-    print(f"  By {key}:")
+    label = "relaxed" if outcome_key == "outcome" else "strict"
+    print(f"  By {key} ({label}):")
     for k in keys:
         if k not in groups:
             continue
