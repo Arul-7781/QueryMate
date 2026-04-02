@@ -73,12 +73,16 @@ def normalise_rows(rows):
     return Counter(normalised)
 
 
-def _projection_match(source_rows, target_rows, max_source_cols=10):
+def _projection_match(source_rows, target_rows, max_source_cols=10, max_permutation_width=6):
     """
     Returns True if some projection of source_rows can equal target_rows.
 
     Use this for column-tolerant denotation checks:
     - source -> target where source has equal/more columns.
+
+    Also supports column re-ordering by trying permutations of selected
+    columns up to max_permutation_width, so equivalent SELECT lists with
+    different column order are treated as matches.
     """
     if source_rows is None or target_rows is None:
         return False
@@ -100,9 +104,19 @@ def _projection_match(source_rows, target_rows, max_source_cols=10):
 
     target_norm = normalise_rows(target_rows)
     for col_idx in itertools.combinations(range(src_cols), tgt_cols):
+        # Fast path: keep natural selected-column order.
         projected = [tuple(row[i] for i in col_idx) for row in source_rows]
         if normalise_rows(projected) == target_norm:
             return True
+
+        # If widths are reasonable, try reordering selected columns too.
+        if tgt_cols <= max_permutation_width and tgt_cols > 1:
+            for perm_idx in itertools.permutations(col_idx):
+                if perm_idx == col_idx:
+                    continue
+                projected = [tuple(row[i] for i in perm_idx) for row in source_rows]
+                if normalise_rows(projected) == target_norm:
+                    return True
 
     return False
 
@@ -113,7 +127,8 @@ def classify_result_match(expected_rows, actual_rows):
 
     Match types:
     - exact: exact row-set equality
-    - actual_superset_projection: generated SQL returned extra columns
+        - actual_superset_projection: generated SQL returned extra columns
+        - actual_column_reordered: same denotation, different output column order
     - actual_subset_projection: generated SQL returned fewer columns but
       still corresponds to a valid projection of expected rows
     - none: no denotation alignment
@@ -145,11 +160,14 @@ def classify_result_match(expected_rows, actual_rows):
 
     # Legacy behavior: generated SQL may include extra columns.
     if _projection_match(actual_rows, expected_rows):
+        match_type = "actual_superset_projection"
+        if len(actual_rows[0]) == len(expected_rows[0]):
+            match_type = "actual_column_reordered"
         out.update({
             "legacy_match": True,
             "relaxed_match": True,
             "partial_credit": 1.0,
-            "match_type": "actual_superset_projection",
+            "match_type": match_type,
         })
         return out
 
