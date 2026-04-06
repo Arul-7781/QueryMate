@@ -1,0 +1,1433 @@
+[
+  {
+    "id": 14,
+    "difficulty": "easy",
+    "category": "aggregate",
+    "tables_used": [
+      "Projects"
+    ],
+    "question": "What is the total budget of all projects combined?",
+    "sql": "SELECT SUM(Budget) AS TotalProjectBudget FROM Projects;"
+  },
+  {
+    "id": 23,
+    "difficulty": "medium",
+    "category": "join_filter",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "question": "Which employees are leading at least one project?",
+    "sql": "SELECT DISTINCT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE ep.Role = 'Lead';"
+  },
+  {
+    "id": 24,
+    "difficulty": "medium",
+    "category": "join_aggregate",
+    "tables_used": [
+      "Projects",
+      "EmployeeProjects"
+    ],
+    "question": "What is the total hours logged per project?",
+    "sql": "SELECT p.ProjectName, SUM(ep.HoursLogged) AS TotalHours FROM Projects p JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID GROUP BY p.ProjectID, p.ProjectName ORDER BY TotalHours DESC;"
+  },
+  {
+    "id": 26,
+    "difficulty": "medium",
+    "category": "multi_join",
+    "tables_used": [
+      "Departments",
+      "Locations"
+    ],
+    "question": "Which city is the IT department located in?",
+    "sql": "SELECT l.City FROM Departments d JOIN Locations l ON d.LocationID = l.LocationID WHERE d.DeptName = 'IT';"
+  },
+  {
+    "id": 68,
+    "difficulty": "medium",
+    "category": "dept_hours_sum",
+    "tables_used": [
+      "EmployeeProjects",
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the total hours logged by employees from Sales across all projects?",
+    "sql": "SELECT SUM(ep.HoursLogged) AS TotalHours FROM EmployeeProjects ep JOIN Employees e ON ep.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Sales';"
+  },
+  {
+    "id": 81,
+    "difficulty": "easy",
+    "category": "dept_filter_count",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "How many active employees are in the Finance department?",
+    "sql": "SELECT COUNT(*) AS ActiveEmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Finance' AND e.Status = 'Active';"
+  },
+  {
+    "id": 89,
+    "difficulty": "hard",
+    "category": "dept_distinct_skills",
+    "tables_used": [
+      "EmployeeSkills",
+      "Employees",
+      "Departments"
+    ],
+    "question": "How many distinct skills are present among employees in Finance?",
+    "sql": "SELECT COUNT(DISTINCT es.SkillID) AS DistinctSkillCount FROM EmployeeSkills es JOIN Employees e ON es.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Finance';"
+  },
+  {
+    "id": 99,
+    "difficulty": "hard",
+    "category": "dept_distinct_skills",
+    "tables_used": [
+      "EmployeeSkills",
+      "Employees",
+      "Departments"
+    ],
+    "question": "How many distinct skills are present among employees in Operations?",
+    "sql": "SELECT COUNT(DISTINCT es.SkillID) AS DistinctSkillCount FROM EmployeeSkills es JOIN Employees e ON es.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations';"
+  },
+  {
+    "id": 104,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have Python?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python';"
+  },
+  {
+    "id": 134,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have Financial Modeling?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Financial Modeling';"
+  },
+  {
+    "id": 145,
+    "difficulty": "hard",
+    "category": "skill_department_distribution",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which departments have employees with Docker, and how many such employees are there per department?",
+    "sql": "SELECT d.DeptName, COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker' GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 147,
+    "difficulty": "medium",
+    "category": "skill_list_proficiency",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "List employees with Data Analysis skill and their proficiency.",
+    "sql": "SELECT e.Name, es.Proficiency FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Data Analysis' ORDER BY e.Name;"
+  },
+  {
+    "id": 149,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have Data Analysis?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Data Analysis';"
+  },
+  {
+    "id": 154,
+    "difficulty": "medium",
+    "category": "location_project_budget",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "question": "What is the total project budget for projects in Bangalore?",
+    "sql": "SELECT SUM(p.Budget) AS TotalBudget FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Bangalore';"
+  },
+  {
+    "id": 167,
+    "difficulty": "medium",
+    "category": "location_salary_avg",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "Locations"
+    ],
+    "question": "What is the average salary of employees in Chennai?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Chennai';"
+  },
+  {
+    "id": 176,
+    "difficulty": "medium",
+    "category": "anti_join",
+    "tables_used": [
+      "Projects",
+      "EmployeeProjects"
+    ],
+    "question": "List projects that currently have no assigned employees.",
+    "sql": "SELECT p.ProjectName FROM Projects p LEFT JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID WHERE ep.ProjectID IS NULL;"
+  },
+  {
+    "id": 177,
+    "difficulty": "medium",
+    "category": "anti_join",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "question": "List employees who are not assigned to any project.",
+    "sql": "SELECT e.Name FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE ep.EmpID IS NULL;"
+  },
+  {
+    "id": 193,
+    "difficulty": "hard",
+    "category": "not_in_subquery",
+    "tables_used": [
+      "Skills",
+      "EmployeeSkills",
+      "Employees",
+      "Departments"
+    ],
+    "question": "List skills not found among IT department employees.",
+    "sql": "SELECT s.SkillName FROM Skills s WHERE s.SkillID NOT IN (SELECT DISTINCT es.SkillID FROM EmployeeSkills es JOIN Employees e ON es.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT') ORDER BY s.SkillName;"
+  },
+  {
+    "id": 195,
+    "difficulty": "medium",
+    "category": "group_by_sort_limit",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "question": "Which employee is assigned to the highest number of projects?",
+    "sql": "SELECT e.Name, COUNT(ep.ProjectID) AS ProjectCount FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID GROUP BY e.EmpID, e.Name ORDER BY ProjectCount DESC LIMIT 1;"
+  },
+  {
+    "id": 200,
+    "difficulty": "medium",
+    "category": "join_aggregate",
+    "tables_used": [
+      "Departments",
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "question": "List departments sorted by total hours logged by their employees.",
+    "sql": "SELECT d.DeptName, SUM(ep.HoursLogged) AS TotalHoursLogged FROM Departments d JOIN Employees e ON d.DeptID = e.DeptID JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID GROUP BY d.DeptID, d.DeptName ORDER BY TotalHoursLogged DESC;"
+  },
+  {
+    "id": 201,
+    "difficulty": "easy",
+    "category": "single_table_filter",
+    "tables_used": [
+      "Employees"
+    ],
+    "topic_tags": [
+      "single_table"
+    ],
+    "question": "List employee names with status Active sorted alphabetically.",
+    "sql": "SELECT Name FROM Employees WHERE Status = 'Active' ORDER BY Name;"
+  },
+  {
+    "id": 208,
+    "difficulty": "easy",
+    "category": "single_table_filter",
+    "tables_used": [
+      "Employees"
+    ],
+    "topic_tags": [
+      "single_table"
+    ],
+    "question": "How many employees have salary at least 90000?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees WHERE Salary >= 90000;"
+  },
+  {
+    "id": 214,
+    "difficulty": "medium",
+    "category": "date_grouping",
+    "tables_used": [
+      "Employees"
+    ],
+    "topic_tags": [
+      "date_time",
+      "group_by"
+    ],
+    "question": "Show year-wise employee joining counts from 2023-01-01 onwards.",
+    "sql": "SELECT strftime('%Y', JoinDate) AS JoinYear, COUNT(*) AS EmployeeCount FROM Employees WHERE JoinDate >= '2023-01-01' GROUP BY strftime('%Y', JoinDate) ORDER BY JoinYear;"
+  },
+  {
+    "id": 224,
+    "difficulty": "medium",
+    "category": "pagination",
+    "tables_used": [
+      "Employees"
+    ],
+    "topic_tags": [
+      "pagination",
+      "single_table"
+    ],
+    "question": "Show employees from row 11 to 20 by salary descending (pagination).",
+    "sql": "SELECT Name, Salary FROM Employees ORDER BY Salary DESC, EmpID LIMIT 10 OFFSET 10;"
+  },
+  {
+    "id": 228,
+    "difficulty": "easy",
+    "category": "join_filter_count",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Finance, how many employees are in status On Leave?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Finance' AND e.Status = 'On Leave';"
+  },
+  {
+    "id": 239,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Finance, how many employees earn above 90000?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Finance' AND e.Salary > 90000;"
+  },
+  {
+    "id": 255,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In HR, how many employees earn above 105000?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR' AND e.Salary > 105000) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 262,
+    "difficulty": "easy",
+    "category": "join_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "What is the project count for status In Progress in IT?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'IT' AND p.Status = 'In Progress';"
+  },
+  {
+    "id": 273,
+    "difficulty": "easy",
+    "category": "join_filter_count",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Legal, how many employees are in status On Leave?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Legal' AND e.Status = 'On Leave';"
+  },
+  {
+    "id": 278,
+    "difficulty": "easy",
+    "category": "join_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "What is the project count for status On Hold in Legal?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'Legal' AND p.Status = 'On Hold') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 292,
+    "difficulty": "easy",
+    "category": "join_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "What is the project count for status In Progress in Marketing?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'Marketing' AND p.Status = 'In Progress') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 295,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Marketing, how many employees earn above 45000?",
+    "sql": "SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Marketing' AND e.Salary > 45000) AS subq1;"
+  },
+  {
+    "id": 307,
+    "difficulty": "easy",
+    "category": "join_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "What is the project count for status In Progress in Operations?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'Operations' AND p.Status = 'In Progress') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 309,
+    "difficulty": "easy",
+    "category": "join_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "What is the project count for status Pending in Operations?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'Operations' AND p.Status = 'Pending') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 311,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Operations, how many employees earn above 55000?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations' AND e.Salary > 55000) AS subq1) AS subq2) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 317,
+    "difficulty": "easy",
+    "category": "join_filter_count",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Procurement, how many employees are in status Active?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Procurement' AND e.Status = 'Active') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 355,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Sales, how many employees earn above 45000?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Sales' AND e.Salary > 45000) AS subq1) AS subq2;"
+  },
+  {
+    "id": 356,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Sales, how many employees earn above 55000?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Sales' AND e.Salary > 55000) AS subq1) AS subq2;"
+  },
+  {
+    "id": 357,
+    "difficulty": "medium",
+    "category": "join_threshold",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "In Sales, how many employees earn above 65000?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Sales' AND e.Salary > 65000) AS subq1) AS subq2;"
+  },
+  {
+    "id": 397,
+    "difficulty": "medium",
+    "category": "city_project_status",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "How many On Hold projects are tied to city Delhi?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Delhi' AND p.Status = 'On Hold') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 409,
+    "difficulty": "medium",
+    "category": "city_join_count",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "Locations"
+    ],
+    "topic_tags": [
+      "joins"
+    ],
+    "question": "How many employees are mapped to city Kolkata?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Kolkata';"
+  },
+  {
+    "id": 429,
+    "difficulty": "hard",
+    "category": "correlated_subquery",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "subquery",
+      "joins"
+    ],
+    "question": "List employees in IT earning above their department average.",
+    "sql": "SELECT e.Name, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT' AND e.Salary > (SELECT AVG(e2.Salary) FROM Employees e2 WHERE e2.DeptID = e.DeptID) ORDER BY e.Salary DESC, e.Name;"
+  },
+  {
+    "id": 433,
+    "difficulty": "hard",
+    "category": "correlated_subquery",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "subquery",
+      "joins"
+    ],
+    "question": "List employees in Procurement earning above their department average.",
+    "sql": "SELECT e.Name, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Procurement' AND e.Salary > (SELECT AVG(e2.Salary) FROM Employees e2 WHERE e2.DeptID = e.DeptID) ORDER BY e.Salary DESC, e.Name;"
+  },
+  {
+    "id": 441,
+    "difficulty": "hard",
+    "category": "recursive_cte",
+    "tables_used": [
+      "Employees"
+    ],
+    "topic_tags": [
+      "cte",
+      "recursive_cte"
+    ],
+    "question": "Build manager-reporting chains up to depth 3 using recursive CTE.",
+    "sql": "WITH RECURSIVE org_chain(EmpID, Name, ManagerID, Level) AS (SELECT EmpID, Name, ManagerID, 0 FROM Employees WHERE ManagerID IS NULL UNION ALL SELECT e.EmpID, e.Name, e.ManagerID, oc.Level + 1 FROM Employees e JOIN org_chain oc ON e.ManagerID = oc.EmpID WHERE oc.Level < 3) SELECT EmpID, Name, ManagerID, Level FROM org_chain ORDER BY Level, Name;"
+  },
+  {
+    "id": 443,
+    "difficulty": "hard",
+    "category": "window_rank",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "window",
+      "ranking",
+      "joins"
+    ],
+    "question": "Rank employees by salary within HR.",
+    "sql": "SELECT e.Name, e.Salary, DENSE_RANK() OVER (ORDER BY e.Salary DESC) AS SalaryRank FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR' ORDER BY SalaryRank, e.Name;"
+  },
+  {
+    "id": 444,
+    "difficulty": "hard",
+    "category": "window_rank",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "window",
+      "ranking",
+      "joins"
+    ],
+    "question": "Rank employees by salary within IT.",
+    "sql": "SELECT e.Name, e.Salary, DENSE_RANK() OVER (ORDER BY e.Salary DESC) AS SalaryRank FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT' ORDER BY SalaryRank, e.Name;"
+  },
+  {
+    "id": 445,
+    "difficulty": "hard",
+    "category": "window_rank",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "window",
+      "ranking",
+      "joins"
+    ],
+    "question": "Rank employees by salary within Legal.",
+    "sql": "SELECT e.Name, e.Salary, DENSE_RANK() OVER (ORDER BY e.Salary DESC) AS SalaryRank FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Legal' ORDER BY SalaryRank, e.Name;"
+  },
+  {
+    "id": 453,
+    "difficulty": "hard",
+    "category": "set_union",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using UNION, list Active or On Leave employees in HR.",
+    "sql": "SELECT e.Name FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR' AND e.Status = 'Active' UNION SELECT e.Name FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR' AND e.Status = 'On Leave' ORDER BY Name;"
+  },
+  {
+    "id": 456,
+    "difficulty": "hard",
+    "category": "set_union",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using UNION, list Active or On Leave employees in Marketing.",
+    "sql": "SELECT e.Name FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Marketing' AND e.Status = 'Active' UNION SELECT e.Name FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Marketing' AND e.Status = 'On Leave' ORDER BY Name;"
+  },
+  {
+    "id": 467,
+    "difficulty": "hard",
+    "category": "set_except",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using EXCEPT, list employees who have A/B Testing but not Contract Law.",
+    "sql": "SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'A/B Testing' EXCEPT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Contract Law' ORDER BY Name;"
+  },
+  {
+    "id": 472,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both A/B Testing and Docker.",
+    "sql": "SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'A/B Testing' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker' ORDER BY Name;"
+  },
+  {
+    "id": 483,
+    "difficulty": "hard",
+    "category": "set_except",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using EXCEPT, list employees who have A/B Testing but not Machine Learning.",
+    "sql": "SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'A/B Testing' EXCEPT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' ORDER BY Name;"
+  },
+  {
+    "id": 490,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both AWS and Contract Law.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Contract Law' ORDER BY Name) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 492,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both AWS and Cybersecurity.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Cybersecurity' ORDER BY Name) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 502,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both AWS and Kubernetes.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Kubernetes' ORDER BY Name) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 506,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both AWS and Machine Learning.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' ORDER BY Name) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 507,
+    "difficulty": "hard",
+    "category": "set_except",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using EXCEPT, list employees who have AWS but not Machine Learning.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' EXCEPT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' ORDER BY Name) AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 510,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both AWS and Negotiation.",
+    "sql": "SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Negotiation' ORDER BY Name) AS subq1;"
+  },
+  {
+    "id": 526,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Communication and Leadership.",
+    "sql": "SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Communication' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Leadership' ORDER BY Name) AS subq1;"
+  },
+  {
+    "id": 548,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Contract Law and Machine Learning.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Contract Law' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' ORDER BY Name) AS subq1) AS subq2) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 550,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Contract Law and NLP.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Contract Law' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'NLP' ORDER BY Name) AS subq1) AS subq2) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 557,
+    "difficulty": "hard",
+    "category": "set_except",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using EXCEPT, list employees who have Cybersecurity but not Docker.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Cybersecurity' EXCEPT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker' ORDER BY Name) AS subq1) AS subq2) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 568,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Cybersecurity and NLP.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Cybersecurity' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'NLP' ORDER BY Name) AS subq1) AS subq2;"
+  },
+  {
+    "id": 582,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Data Analysis and Machine Learning.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Data Analysis' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' ORDER BY Name) AS subq1) AS subq2) AS subq3) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 588,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Docker and Financial Modeling.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Financial Modeling' ORDER BY Name) AS subq1) AS subq2) AS subq3) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 598,
+    "difficulty": "hard",
+    "category": "set_intersect",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "topic_tags": [
+      "set_ops",
+      "joins"
+    ],
+    "question": "Using INTERSECT, list employees who have both Docker and NLP.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker' INTERSECT SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'NLP' ORDER BY Name) AS subq1) AS subq2) AS subq3) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 662,
+    "difficulty": "medium",
+    "category": "transaction_readiness_preview",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "transaction_aware",
+      "joins"
+    ],
+    "question": "Before budget adjustment, show projects with budget >= 600000 and their department.",
+    "sql": "SELECT p.ProjectName, p.Budget, d.DeptName FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE p.Budget >= 600000 ORDER BY p.Budget DESC, p.ProjectName;"
+  },
+  {
+    "id": 663,
+    "difficulty": "medium",
+    "category": "transaction_readiness_preview",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "topic_tags": [
+      "transaction_aware",
+      "joins"
+    ],
+    "question": "Before budget adjustment, show projects with budget >= 800000 and their department.",
+    "sql": "SELECT p.ProjectName, p.Budget, d.DeptName FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE p.Budget >= 800000 ORDER BY p.Budget DESC, p.ProjectName;"
+  },
+  {
+    "id": 666,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Aarav Naidu 272.",
+    "sql": "SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Aarav Naidu 272';"
+  },
+  {
+    "id": 673,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Aditya Bose 298 have?",
+    "sql": "SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Aditya Bose 298';"
+  },
+  {
+    "id": 686,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Aditya Rana 516.",
+    "sql": "SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Aditya Rana 516';"
+  },
+  {
+    "id": 691,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Aditya Talwar 666 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Aditya Talwar 666') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 709,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Aisha Sethi 911 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Aisha Sethi 911') AS subq1) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 729,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Anika Bhardwaj 492 have?",
+    "sql": "SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Anika Bhardwaj 492') AS subq1;"
+  },
+  {
+    "id": 748,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Arnav Bose 811.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Arnav Bose 811') AS subq1) AS subq2) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 764,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Atharv Bhandari 114.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Atharv Bhandari 114') AS subq1) AS subq2;"
+  },
+  {
+    "id": 800,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Ayaan Rana 788.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Ayaan Rana 788') AS subq1) AS subq2) AS subq3) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 819,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Dev Rana 628 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Dev Rana 628') AS subq1) AS subq2) AS subq3;"
+  },
+  {
+    "id": 820,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Dev Rastogi 82.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Dev Rastogi 82') AS subq1) AS subq2) AS subq3;"
+  },
+  {
+    "id": 823,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Dev Saxena 272 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Dev Saxena 272') AS subq1) AS subq2) AS subq3;"
+  },
+  {
+    "id": 828,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Divya Krishnan.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Divya Krishnan') AS subq1) AS subq2) AS subq3;"
+  },
+  {
+    "id": 829,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Divya Krishnan have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Divya Krishnan') AS subq1) AS subq2) AS subq3;"
+  },
+  {
+    "id": 832,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Diya Bose 857.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Diya Bose 857') AS subq1) AS subq2) AS subq3) AS subq4) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 835,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Diya Dutta 521 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Diya Dutta 521') AS subq1) AS subq2) AS subq3) AS subq4) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 850,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Finance Manager 4.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Finance Manager 4') AS subq1) AS subq2) AS subq3) AS subq4) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 852,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee HR Manager 3.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'HR Manager 3') AS subq1) AS subq2) AS subq3) AS subq4) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 857,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Isha Agarwal 465 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Isha Agarwal 465') AS subq1) AS subq2) AS subq3) AS subq4;"
+  },
+  {
+    "id": 860,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Isha Khanna 271.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Isha Khanna 271') AS subq1) AS subq2) AS subq3) AS subq4;"
+  },
+  {
+    "id": 871,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Ishaan Banerjee 792 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Ishaan Banerjee 792') AS subq1) AS subq2) AS subq3) AS subq4;"
+  },
+  {
+    "id": 893,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Kabir Bhalla 211 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Kabir Bhalla 211') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 894,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Kabir Bose 361.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Kabir Bose 361') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 896,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Kabir Ghosh 989.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Kabir Ghosh 989') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 899,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Kabir Kulkarni 676 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Kabir Kulkarni 676') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 905,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Kabir Sood 726 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Kabir Sood 726') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5;"
+  },
+  {
+    "id": 921,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Kian Mishra 187 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Kian Mishra 187') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5;"
+  },
+  {
+    "id": 927,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Kian Rastogi 698 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Kian Rastogi 698') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5;"
+  },
+  {
+    "id": 965,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Krish Mishra 195 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Krish Mishra 195') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS subq6;"
+  },
+  {
+    "id": 973,
+    "difficulty": "easy",
+    "category": "employee_rollup",
+    "tables_used": [
+      "Employees",
+      "EmployeeProjects"
+    ],
+    "topic_tags": [
+      "joins",
+      "group_by"
+    ],
+    "question": "How many projects and total logged hours does Krish Naidu 711 have?",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT COUNT(ep.ProjectID) AS ProjectCount, COALESCE(SUM(ep.HoursLogged), 0) AS TotalHours FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Name = 'Krish Naidu 711') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS subq6;"
+  },
+  {
+    "id": 978,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Krish Pathak 590.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Krish Pathak 590') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS subq6) AS subq7) AS finalq WHERE 1=1;"
+  },
+  {
+    "id": 980,
+    "difficulty": "medium",
+    "category": "self_join_manager_lookup",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "topic_tags": [
+      "joins",
+      "subquery"
+    ],
+    "question": "Show manager and department for employee Krish Rana 906.",
+    "sql": "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT m.Name AS ManagerName, d.DeptName FROM Employees e LEFT JOIN Employees m ON e.ManagerID = m.EmpID LEFT JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Name = 'Krish Rana 906') AS subq1) AS subq2) AS subq3) AS subq4) AS subq5) AS subq6) AS subq7) AS finalq WHERE 1=1;"
+  }
+]
