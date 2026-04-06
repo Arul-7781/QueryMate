@@ -12,6 +12,7 @@ Usage:
     python tests/evaluator.py --ids 1 5 10      # run specific test IDs
     python tests/evaluator.py --difficulty easy  # run only easy queries
     python tests/evaluator.py --limit 10         # run first N queries
+    python tests/evaluator.py --golden-set tests/splits/eval_50_from_golden_set_stratified.json
 """
 
 import sys
@@ -606,6 +607,8 @@ def _save_csv(details, path):
 
 def main():
     parser = argparse.ArgumentParser(description="QueryMate Evaluation Runner")
+    parser.add_argument("--golden-set", type=str, default=GOLDEN_SET,
+                        help="Path to the golden set JSON file")
     parser.add_argument("--ids",        nargs="+", type=int, help="Run only specific test IDs")
     parser.add_argument("--difficulty", choices=["easy", "medium", "hard"],
                         help="Filter by difficulty")
@@ -613,7 +616,7 @@ def main():
     parser.add_argument("--category",   type=str, help="Filter by category name")
     args = parser.parse_args()
 
-    with open(GOLDEN_SET) as f:
+    with open(args.golden_set) as f:
         all_cases = json.load(f)
 
     # Apply filters
