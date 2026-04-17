@@ -7,6 +7,7 @@ Submission-ready repository for the PES University AI project on resource-constr
 - Repository URL / Drive URL: https://github.com/Arul-7781/QueryMate.git
 - If this repository is private, add reviewer access for GitHub user: gsrinivasa-pes
 - Main branch status: this README is prepared for final submission after merging validated work into main
+- For evaluation, reviewers only need repository access and notebook execution.
 
 ## Important Evaluation Note
 
@@ -108,63 +109,24 @@ python src/db_setup.py
 
 ## Reproducing Results
 
-### A) Primary path (required): run the notebooks
+### Required path: run notebooks from the connected repository
 
-Open and run notebooks in [notebooks/](notebooks/) with GPU runtime (T4 on free tier where available):
+Reviewers only need to:
+1. Have access to this repository.
+2. Open [notebooks/](notebooks/) in Colab/Jupyter.
+3. Run the notebook cells end-to-end.
+
+Primary notebooks:
 - company_adapter_colab.ipynb
 - qwen25coder3b_colab_baseline_vs_qlora.ipynb
 - spider_adapter_colab_best.ipynb
 - dual_adapter_company_spider_colab.ipynb
 
-This is the recommended path for reproducing the submitted experiments.
+Important for Spider notebooks:
+- You must have the Spider dataset zip file.
+- Extract it so Spider files are available under [spider_data/](spider_data/) (including JSON files and database folders) before running Spider notebooks.
 
-### B) Optional legacy demo path: run the Streamlit app (API-first phase)
-
-```bash
-streamlit run app.py
-```
-
-Open http://localhost:8501
-
-### C) Reproduce execution-accuracy evaluation (company golden set)
-
-Run full set:
-
-```bash
-python tests/evaluator.py
-```
-
-Useful options:
-
-```bash
-python tests/evaluator.py --difficulty easy
-python tests/evaluator.py --limit 10
-python tests/evaluator.py --ids 1 5 10
-python tests/evaluator.py --golden-set tests/splits/eval_50_from_golden_set_stratified.json
-```
-
-Outputs are saved in [tests/results/](tests/results/).
-
-### D) Reproduce experiment split creation
-
-```bash
-python scripts/create_experiment_splits.py
-```
-
-This generates split artifacts in [tests/splits/](tests/splits/), including:
-- eval_50_from_golden_set_stratified.json
-- train_850_from_rebalanced_noeval.json
-- holdout_from_rebalanced_noeval.json
-
-### E) Generate analysis figures
-
-```bash
-python scripts/generate_paper_figures.py
-```
-
-Generated files are written to [figures/](figures/).
-
-Note: notebook outputs depend on runtime availability and API limits; evaluation and figure scripts above provide repository-side reproducibility for reported outputs.
+Note: no separate script execution is required for reproduction when running the notebooks directly from the connected repository.
 
 ## Additional Documentation
 
