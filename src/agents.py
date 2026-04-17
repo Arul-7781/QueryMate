@@ -1,10 +1,9 @@
 import sqlite3
 import os
-from src.llm_engine import get_llm
+import re
+from src.llm_engine import invoke_with_fallback
 from src.schema_rag import initialize_schema_vectorstore, retrieve_relevant_schemas
 
-# Initialize LLM
-llm = get_llm()
 DB_PATH = os.path.join("data", "company.db")
 
 # Initialize RAG system (runs once at startup)
@@ -30,8 +29,8 @@ def agent_schema_expert(question):
     
     This reduces noise and improves LLM accuracy.
     """
-    # Use RAG to get only relevant schemas
-    return retrieve_relevant_schemas(question, top_k=2)
+    # Use RAG to get only relevant schemas (top_k=3 for 7-table schema)
+    return retrieve_relevant_schemas(question, top_k=3)
 
 # ==========================================
 # AGENT 1.5: PLANNER (Reasoning Agent) 🧠
@@ -65,7 +64,7 @@ def agent_planner(question, schema):
     Keep it concise and technical.
     """
     
-    response = llm.invoke(prompt)
+    response = invoke_with_fallback(prompt)
     return response.content
 
 # ==========================================
@@ -88,18 +87,42 @@ def agent_sql_coder(question, schema, plan=None, error_context=None):
     Example 1:
     Question: "Who is the manager of the IT department?"
     SQL: SELECT ManagerName FROM Departments WHERE DeptName = 'IT';
-    
+    -- Only select ManagerName, not SELECT *
+
     Example 2:
     Question: "Show me employees earning more than 80000"
     SQL: SELECT Name, Salary FROM Employees WHERE Salary > 80000;
-    
+    -- Select exactly Name and Salary — NOT EmpID or other columns
+
     Example 3:
-    Question: "List projects with 'Pending' status"
-    SQL: SELECT ProjectName, Budget FROM Projects WHERE Status = 'Pending';
-    
+    Question: "List all projects with Pending status"
+    SQL: SELECT ProjectName FROM Projects WHERE Status = 'Pending';
+    -- Only ProjectName since that is what is asked
+
     Example 4:
     Question: "How many employees in Sales?"
-    SQL: SELECT COUNT(*) FROM Employees WHERE DeptID = (SELECT DeptID FROM Departments WHERE DeptName = 'Sales');
+    SQL: SELECT COUNT(*) AS EmployeeCount FROM Employees WHERE DeptID = (SELECT DeptID FROM Departments WHERE DeptName = 'Sales');
+
+    Example 5:
+    Question: "Which employees know Python?"
+    SQL: SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python';
+    -- Return Name (human-readable), NOT EmpID
+
+    Example 6:
+    Question: "Which employees are leading at least one project?"
+    SQL: SELECT DISTINCT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE ep.Role = 'Lead';
+    -- Use DISTINCT e.Name only — not SELECT E.*
+
+    Example 7:
+    Question: "What is the total hours logged per project?"
+    SQL: SELECT p.ProjectName, SUM(ep.HoursLogged) AS TotalHours FROM Projects p JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID GROUP BY p.ProjectID, p.ProjectName ORDER BY TotalHours DESC;
+    -- Include ProjectName (readable), not ProjectID. Alias must match exactly.
+
+    Example 8:
+    Question: "Who are the managers and how many employees report to them?"
+    SQL: SELECT m.Name AS Manager, COUNT(e.EmpID) AS DirectReports FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID GROUP BY m.EmpID, m.Name ORDER BY DirectReports DESC;
+    -- Self-join: alias the manager table as m, report table as e
+
     """
     
     if error_context:
@@ -121,13 +144,14 @@ def agent_sql_coder(question, schema, plan=None, error_context=None):
         2. Fix the specific error mentioned
         3. Do not use Markdown (```sql)
         4. Do not add explanations
+        5. Only use column names that exist in the schema above
         """
     else:
         # NORMAL MODE: First attempt (includes planning)
         plan_context = f"\nQuery Plan:\n{plan}\n" if plan else ""
         
         prompt = f"""
-        You are an expert SQLite Developer. 
+        You are an expert SQLite Developer.
         
         Question: {question}
         Schema: {schema}
@@ -135,18 +159,103 @@ def agent_sql_coder(question, schema, plan=None, error_context=None):
         Learn from these examples:
         {few_shot_examples}
         
-        Rules:
-        1. Return ONLY the raw SQL code
-        2. Do not use Markdown (```sql)
-        3. Do not add explanations
-        4. Follow the pattern shown in examples
+        CRITICAL RULES — follow every one:
+        1. Return ONLY the raw SQL code — no explanations, no markdown
+        2. Prefer explicit column lists. Use SELECT * only when question clearly asks for all fields.
+        3. SELECT only the columns that directly answer the question:
+           - If asked for names → SELECT Name (not EmpID, not extra columns)
+           - If asked for a count → SELECT COUNT(...)
+           - If asked for name + salary → SELECT Name, Salary
+        4. Use human-readable columns (Name, ProjectName, DeptName) not ID columns
+        5. Column aliases must match the question intent (e.g. AS TotalHours not AS TotalHoursLogged)
+        6. Only use column names that exist in the schema above — do not invent columns
+        7. Do NOT add assumptions or hidden filters not asked in the question
+        8. If question asks for both an entity and a metric, return both (e.g., DeptName + TotalSalary)
         """
 
-    response = llm.invoke(prompt)
+    response = invoke_with_fallback(prompt)
     
     # Clean up the output (remove markdown if LLM adds it anyway)
     sql = response.content.replace("```sql", "").replace("```", "").strip()
     return sql
+
+
+def validate_sql_intent(question, sql_query):
+    """
+    Generic semantic guardrail (non-overfit): catches broad intent mismatches
+    before SQL execution and feeds correction hints into retry loop.
+    """
+    q = question.lower()
+    s = sql_query.lower()
+    select_clause = s.split("from", 1)[0] if "from" in s else s
+    where_clause = s.split("where", 1)[1] if "where" in s else ""
+
+    aggregate_terms = ["how many", "count", "average", "avg", "total", "sum", "maximum", "minimum", "highest", "lowest"]
+    asks_aggregate = any(t in q for t in aggregate_terms)
+    asks_grouping = ("each" in q) or ("per " in q)
+    asks_status = any(t in q for t in ["status", "active", "inactive", "resigned", "pending", "completed", "on hold", "on leave"])
+
+    if asks_aggregate and "select *" in s:
+        return "Aggregation question should not use SELECT *. Return aggregate columns only."
+
+    if ("how many" in q or "count" in q) and "count(" not in s:
+        return "Count question should use COUNT(...)."
+
+    if ("average" in q or "avg" in q) and "avg(" not in s:
+        return "Average question should use AVG(...)."
+
+    if ("total" in q or "sum" in q) and ("sum(" not in s) and ("total number" not in q):
+        return "Total question should use SUM(...)."
+
+    if asks_grouping and "group by" not in s:
+        return "Per/each question usually needs GROUP BY."
+
+    if "status" in where_clause and not asks_status:
+        return "You added status filtering that is not requested by the question."
+
+    asks_entity_names = any(t in q for t in ["name", "names", "who", "which employee", "which department", "which project", "manager"])
+    has_name_like = any(t in select_clause for t in ["name", "deptname", "projectname", "skillname", "managername", "role"])
+    id_only = any(t in select_clause for t in ["empid", "deptid", "projectid", "skillid"]) and not has_name_like
+    if asks_entity_names and id_only:
+        return "Return human-readable columns (Name/DeptName/ProjectName) instead of ID-only outputs."
+
+    top_match = re.search(r"top\s+(\d+)", q)
+    if top_match and "limit" not in s:
+        return "Top-N question should include LIMIT N."
+
+    return None
+
+
+def validate_result_shape(question, sql_query, rows, headers):
+    """
+    Post-execution generic validation.
+    If SQL executes but likely under-answers/over-answers the question,
+    return a correction hint for retry.
+    """
+    q = question.lower()
+    s = sql_query.lower()
+    header_text = " ".join([h.lower() for h in headers]) if headers else ""
+
+    if ("how many" in q or "count" in q) and len(rows) != 1 and ("group by" not in s):
+        return "Count question should return a single row unless explicitly grouped."
+
+    if ("average" in q or "avg" in q or "maximum" in q or "minimum" in q) and len(rows) != 1 and ("group by" not in s):
+        return "Single aggregate question should return one row unless grouped by category."
+
+    if any(t in q for t in ["name", "names", "who", "which employee", "which department", "which project"]):
+        if headers and any(h.lower().endswith("id") for h in headers) and not any("name" in h.lower() for h in headers):
+            return "Result columns are ID-only; include human-readable name columns."
+
+    top_match = re.search(r"top\s+(\d+)", q)
+    if top_match:
+        n = int(top_match.group(1))
+        if len(rows) > n:
+            return f"Top-{n} question returned too many rows; apply LIMIT {n}."
+
+    if " and " in q and headers and len(headers) == 1 and ("count(" not in s):
+        return "Question requests multiple aspects; include all requested output fields."
+
+    return None
 
 # ==========================================
 # AGENT 3: VALIDATOR (Execution & Self-Correction)
@@ -192,11 +301,32 @@ def run_query_agentic(question):
         try:
             logs.append(f"\n🚀 Attempt {attempt+1}/{MAX_RETRIES}")
             logs.append(f"💻 SQL CODER Generated:\n{sql_query}")
+
+            # SEMANTIC INTENT CHECK (self-correction before execution)
+            intent_error = validate_sql_intent(question, sql_query)
+            if intent_error:
+                logs.append(f"⚠️ INTENT CHECK ERROR: {intent_error}")
+                if attempt < MAX_RETRIES - 1:
+                    error_context = {"error": intent_error, "bad_sql": sql_query}
+                    sql_query = agent_sql_coder(question, schema, error_context=error_context)
+                    logs.append("🔄 SQL CODER: Refining query to match question intent...")
+                    continue
+                logs.append("⚠️ Max retries reached during intent correction; executing best attempt.")
             
             # EXECUTE QUERY
             cursor.execute(sql_query)
             results = cursor.fetchall()
             headers = [desc[0] for desc in cursor.description] if cursor.description else []
+
+            # RESULT-SHAPE CHECK (self-correction after successful execution)
+            shape_error = validate_result_shape(question, sql_query, results, headers)
+            if shape_error and attempt < MAX_RETRIES - 1:
+                logs.append(f"⚠️ RESULT CHECK ERROR: {shape_error}")
+                error_context = {"error": shape_error, "bad_sql": sql_query}
+                sql_query = agent_sql_coder(question, schema, error_context=error_context)
+                logs.append("🔄 SQL CODER: Refining query based on result-shape feedback...")
+                continue
+
             conn.close()
             
             logs.append(f"✅ VALIDATOR: Query executed successfully!")

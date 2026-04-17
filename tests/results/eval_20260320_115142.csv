@@ -1,0 +1,274 @@
+id,difficulty,category,question,golden_sql,generated_sql,outcome,expected_rows,actual_rows,error,elapsed_s
+1,easy,basic_select,List all employees.,SELECT * FROM Employees;,"SELECT Name, Role, Salary, JoinDate, DeptID, ManagerID, Status
+FROM Employees
+WHERE Status = 'Active';",FAIL,20,18,,0.9
+2,easy,aggregate,How many employees are there in total?,SELECT COUNT(*) AS TotalEmployees FROM Employees;,"SELECT COUNT(EmpID) AS TotalEmployees
+FROM Employees;",PASS,1,1,,0.7
+3,easy,aggregate,What is the total number of departments?,SELECT COUNT(*) AS TotalDepartments FROM Departments;,"SELECT COUNT(DeptID) AS TotalDepartments
+FROM Departments;",PASS,1,1,,0.5
+4,easy,filter,List all active employees.,SELECT * FROM Employees WHERE Status = 'Active';,"SELECT EmpID, Name, Status
+FROM Employees
+WHERE Status = 'Active';",FAIL,18,18,,0.62
+5,easy,aggregate,What is the highest salary among all employees?,SELECT MAX(Salary) AS MaxSalary FROM Employees;,"SELECT MAX(Salary) AS Highest_Salary
+FROM Employees;",PASS,1,1,,14.01
+6,easy,filter,List all projects that are currently In Progress.,SELECT ProjectName FROM Projects WHERE Status = 'In Progress';,"SELECT ProjectName
+FROM Projects
+WHERE Status = 'In Progress';",PASS,4,4,,14.82
+7,easy,basic_select,What are the names of all skills in the system?,SELECT SkillName FROM Skills;,"SELECT SkillName
+FROM Skills;",PASS,10,10,,12.71
+8,easy,aggregate,How many employees have resigned?,SELECT COUNT(*) AS ResignedCount FROM Employees WHERE Status = 'Resigned';,"SELECT COUNT(*) 
+FROM Employees 
+WHERE Status = 'Resigned';",PASS,1,1,,15.02
+9,easy,basic_select,List all office locations with their city and country.,"SELECT City, Country FROM Locations;","SELECT LocationID, City, Country
+FROM Locations;",PASS,4,4,,13.11
+10,easy,aggregate,What is the average salary of all employees?,SELECT AVG(Salary) AS AvgSalary FROM Employees;,"SELECT AVG(Salary) AS AverageSalary
+FROM Employees;",PASS,1,1,,14.85
+11,easy,filter,"List all employees who joined after January 1, 2023.","SELECT Name, JoinDate FROM Employees WHERE JoinDate > '2023-01-01';","SELECT EmpID, Name, JoinDate
+FROM Employees
+WHERE DATE(JoinDate) > '2023-01-01';",PASS,11,11,,15.15
+12,easy,null_handling,Which projects have no end date (still ongoing)?,SELECT ProjectName FROM Projects WHERE EndDate IS NULL;,"SELECT ProjectName 
+FROM Projects 
+WHERE EndDate IS NULL;",PASS,7,7,,14.86
+13,easy,filter,List all Technical skills.,SELECT SkillName FROM Skills WHERE Category = 'Technical';,"SELECT SkillName
+FROM Skills
+WHERE Category = 'Technical';",PASS,6,6,,12.8
+14,easy,aggregate,What is the total budget of all projects combined?,SELECT SUM(Budget) AS TotalProjectBudget FROM Projects;,"SELECT SUM(D.Budget) AS TotalBudget
+FROM Projects P
+LEFT JOIN Departments D ON P.DeptID = D.DeptID;",FAIL,1,1,,13.99
+15,easy,filter,List the names of all employees in the IT department.,SELECT Name FROM Employees WHERE DeptID = 1;,"SELECT E.Name
+FROM Employees E
+INNER JOIN Departments D ON E.DeptID = D.DeptID
+WHERE D.DeptName = 'IT' AND E.Status = 'Active';",FAIL,6,5,,15.03
+16,medium,join_group_by,How many employees are in each department?,"SELECT d.DeptName, COUNT(e.EmpID) AS EmployeeCount FROM Departments d LEFT JOIN Employees e ON d.DeptID = e.DeptID GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;","SELECT D.DeptName, COUNT(E.EmpID) AS NumEmployees
+FROM Departments D
+INNER JOIN Employees E ON D.DeptID = E.DeptID
+GROUP BY D.DeptName;",PASS,5,5,,15.26
+17,medium,join_aggregate,What is the average salary in each department?,"SELECT d.DeptName, AVG(e.Salary) AS AvgSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID GROUP BY d.DeptID, d.DeptName;","SELECT 
+  D.DeptID, 
+  D.DeptName, 
+  AVG(E.Salary) AS AverageSalary
+FROM 
+  Departments D
+  INNER JOIN Employees E ON D.DeptID = E.DeptID
+WHERE 
+  E.Salary IS NOT NULL
+GROUP BY 
+  D.DeptID, 
+  D.DeptName;",PASS,5,5,,15.13
+18,medium,multi_join,Which employees are working on the Cloud Migration project?,SELECT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID JOIN Projects p ON ep.ProjectID = p.ProjectID WHERE p.ProjectName = 'Cloud Migration';,"SELECT e.Name
+FROM Employees e
+INNER JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID
+WHERE ep.ProjectID IN (
+  SELECT p.ProjectID
+  FROM Projects p
+  WHERE p.ProjectName = 'Cloud Migration'
+);",PASS,3,3,,16.38
+19,medium,join,List all employees with their department name.,"SELECT e.Name, d.DeptName FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID ORDER BY d.DeptName;","SELECT E.EmpID, E.Name, D.DeptName
+FROM Employees E
+INNER JOIN Departments D ON E.DeptID = D.DeptID;",PASS,20,20,,14.98
+20,medium,sort_limit,Which department has the highest budget?,"SELECT DeptName, Budget FROM Departments ORDER BY Budget DESC LIMIT 1;","SELECT DeptName, Budget
+FROM Departments
+WHERE Budget IS NOT NULL
+ORDER BY Budget DESC
+LIMIT 1;",PASS,1,1,,14.86
+21,medium,group_by,How many projects are in each status?,"SELECT Status, COUNT(*) AS ProjectCount FROM Projects GROUP BY Status ORDER BY ProjectCount DESC;","SELECT Status, COUNT(DISTINCT ProjectID) AS ProjectCount
+FROM Projects
+GROUP BY Status;",PASS,4,4,,15.29
+22,medium,multi_join_filter,Which employees know Python?,SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python';,"SELECT E.Name
+FROM Employees E
+INNER JOIN EmployeeSkills ES ON E.EmpID = ES.EmpID
+INNER JOIN Skills S ON ES.SkillID = S.SkillID
+WHERE S.SkillName = 'Python';",PASS,4,4,,13.89
+23,medium,join_filter,Which employees are leading at least one project?,SELECT DISTINCT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE ep.Role = 'Lead';,"SELECT DISTINCT e.Name
+FROM Employees e
+JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID
+WHERE ep.Role = 'Lead';",PASS,8,8,,15.04
+24,medium,join_aggregate,What is the total hours logged per project?,"SELECT p.ProjectName, SUM(ep.HoursLogged) AS TotalHours FROM Projects p JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID GROUP BY p.ProjectID, p.ProjectName ORDER BY TotalHours DESC;","SELECT 
+  p.ProjectName,
+  SUM(ep.HoursLogged) AS TotalHours
+FROM 
+  Projects p
+  INNER JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
+GROUP BY 
+  p.ProjectID, p.ProjectName
+ORDER BY 
+  TotalHours DESC;",PASS,10,10,,15.03
+25,medium,having,Which employees have more than two skills?,"SELECT e.Name, COUNT(es.SkillID) AS SkillCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID GROUP BY e.EmpID, e.Name HAVING COUNT(es.SkillID) > 2;","SELECT EmpID
+FROM EmployeeSkills
+GROUP BY EmpID
+HAVING COUNT(DISTINCT SkillID) > 2;",FAIL,4,4,,15.14
+26,medium,multi_join,Which city is the IT department located in?,SELECT l.City FROM Departments d JOIN Locations l ON d.LocationID = l.LocationID WHERE d.DeptName = 'IT';,"SELECT L.City
+FROM Departments D
+INNER JOIN Locations L ON D.LocationID = L.LocationID
+WHERE D.DeptName = 'IT';",PASS,1,1,,13.83
+27,medium,multi_join_filter,List all employees who are Expert level in AWS.,SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' AND es.Proficiency = 'Expert';,"SELECT e.Name, e.Role, e.Salary, s.SkillName
+FROM Employees e
+INNER JOIN (
+  SELECT EmpID, SkillID
+  FROM EmployeeSkills
+  WHERE Proficiency = 'Expert'
+) es ON e.EmpID = es.EmpID
+INNER JOIN Skills s ON es.SkillID = s.SkillID
+WHERE s.SkillName = 'AWS';",PASS,1,1,,16.05
+28,medium,join_aggregate,What is the total salary expense per department?,"SELECT d.DeptName, SUM(e.Salary) AS TotalSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID GROUP BY d.DeptID, d.DeptName ORDER BY TotalSalary DESC;","SELECT 
+  D.DeptName, 
+  SUM(E.Salary) AS TotalSalaryExpense
+FROM 
+  Departments D
+  INNER JOIN Employees E ON D.DeptID = E.DeptID
+WHERE 
+  D.Budget > 0 AND E.Status = 'Active'
+GROUP BY 
+  D.DeptName;",FAIL,5,5,,15.93
+29,medium,join_aggregate,How many skills does each employee have?,"SELECT e.Name, COUNT(es.SkillID) AS SkillCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID GROUP BY e.EmpID, e.Name ORDER BY SkillCount DESC;","SELECT 
+  es.EmpID,
+  COUNT(es.SkillID) AS NumSkills
+FROM 
+  EmployeeSkills es
+  JOIN Skills s ON es.SkillID = s.SkillID
+GROUP BY 
+  es.EmpID;",FAIL,19,19,,14.13
+30,medium,filter,Which projects have been completed?,"SELECT ProjectName, EndDate FROM Projects WHERE Status = 'Completed';","SELECT ProjectID
+FROM Projects
+WHERE Status = 'Completed';",FAIL,3,3,,15.03
+31,medium,multi_join_filter,Which employees belong to the Operations department?,"SELECT e.Name, e.Role FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations';","SELECT E.EmpID, E.Name, E.Role
+FROM Employees E
+INNER JOIN Departments D ON E.DeptID = D.DeptID
+WHERE D.DeptName = 'Operations';",PASS,4,4,,14.87
+32,medium,aggregate,What is the maximum budget among all projects?,SELECT MAX(Budget) AS MaxBudget FROM Projects;,"SELECT MAX(Budget) AS MaxBudget
+FROM Projects;",PASS,1,1,,14.86
+33,medium,having,Which employees have been assigned to more than one project?,"SELECT e.Name, COUNT(ep.ProjectID) AS ProjectCount FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID GROUP BY e.EmpID, e.Name HAVING COUNT(ep.ProjectID) > 1;","SELECT E.Name
+FROM Employees E
+JOIN (
+  SELECT EmpID
+  FROM EmployeeProjects
+  GROUP BY EmpID
+  HAVING COUNT(ProjectID) > 1
+) AS MultiProjectEmps ON E.EmpID = MultiProjectEmps.EmpID;",FAIL,4,4,,16.19
+34,medium,multi_join,Which department owns the ERP Integration project?,SELECT d.DeptName FROM Departments d JOIN Projects p ON d.DeptID = p.DeptID WHERE p.ProjectName = 'ERP Integration';,"SELECT D.DeptName 
+FROM Departments D 
+WHERE D.DeptID = (SELECT P.DeptID 
+                  FROM Projects P 
+                  WHERE P.ProjectName = 'ERP Integration');",PASS,1,1,,14.98
+35,medium,multi_join,List all employees with SQL skills and their proficiency level.,"SELECT e.Name, es.Proficiency FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'SQL' ORDER BY es.Proficiency;","SELECT e.EmpID, e.Name, es.Proficiency
+FROM Employees e
+INNER JOIN (
+  SELECT EmpID, SkillID, Proficiency
+  FROM EmployeeSkills
+  WHERE SkillID IN (
+    SELECT SkillID
+    FROM Skills
+    WHERE Category = 'Technical' AND SkillName = 'SQL'
+  )
+) es ON e.EmpID = es.EmpID
+INNER JOIN Skills s ON es.SkillID = s.SkillID
+WHERE s.SkillName = 'SQL';",PASS,5,5,,16.62
+36,hard,self_join,Who are the managers and how many employees directly report to them?,"SELECT m.Name AS Manager, COUNT(e.EmpID) AS DirectReports FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID GROUP BY m.EmpID, m.Name ORDER BY DirectReports DESC;","SELECT 
+  e1.Name AS ManagerName,
+  COUNT(e2.EmpID) AS NumEmployees
+FROM 
+  Employees e1
+  JOIN Employees e2 ON e1.EmpID = e2.ManagerID
+WHERE 
+  e1.Status = 'Active' AND e1.Role = 'Manager'
+GROUP BY 
+  e1.Name;",FAIL,6,0,,16.36
+37,hard,subquery,List all employees earning more than the average salary.,"SELECT Name, Salary FROM Employees WHERE Salary > (SELECT AVG(Salary) FROM Employees) ORDER BY Salary DESC;","SELECT Name, Salary
+FROM Employees
+WHERE Salary > (
+  SELECT AVG(Salary)
+  FROM Employees
+);",PASS,9,9,,14.85
+38,hard,subquery_intersection,Which employees know both Python and SQL?,SELECT e.Name FROM Employees e WHERE e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python') AND e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'SQL');,"SELECT e.Name
+FROM Employees e
+JOIN EmployeeSkills es1 ON e.EmpID = es1.EmpID
+JOIN Skills s1 ON es1.SkillID = s1.SkillID AND s1.SkillName = 'Python'
+JOIN EmployeeSkills es2 ON e.EmpID = es2.EmpID
+JOIN Skills s2 ON es2.SkillID = s2.SkillID AND s2.SkillName = 'SQL'
+WHERE es1.Proficiency != 'Beginner' AND es2.Proficiency != 'Beginner';",FAIL,2,1,,15.16
+39,hard,join_aggregate_sort,Which employee has logged the most total hours across all projects?,"SELECT e.Name, SUM(ep.HoursLogged) AS TotalHours FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID GROUP BY e.EmpID, e.Name ORDER BY TotalHours DESC LIMIT 1;","SELECT E.Name, SUM(EP.HoursLogged) AS TotalHours
+FROM EmployeeProjects EP
+JOIN Employees E ON EP.EmpID = E.EmpID
+GROUP BY E.EmpID, E.Name
+ORDER BY TotalHours DESC
+LIMIT 1;",PASS,1,1,,17.31
+40,hard,having_subquery,Which departments have a total salary expense greater than 300000?,"SELECT d.DeptName, SUM(e.Salary) AS TotalSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID GROUP BY d.DeptID, d.DeptName HAVING SUM(e.Salary) > 300000 ORDER BY TotalSalary DESC;","SELECT D.DeptName
+FROM Departments D
+JOIN (
+  SELECT DeptID, SUM(Salary) AS TotalSalary
+  FROM Employees
+  GROUP BY DeptID
+) E ON D.DeptID = E.DeptID
+WHERE E.TotalSalary > 300000;",FAIL,1,1,,16.06
+41,hard,cross_join_filter,List employees who are working on projects that belong to a different department than their own.,SELECT DISTINCT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID JOIN Projects p ON ep.ProjectID = p.ProjectID WHERE e.DeptID != p.DeptID;,"SELECT E.EmpID, E.Name, P.ProjectName
+FROM Employees E
+LEFT JOIN Departments D ON E.DeptID = D.DeptID
+LEFT JOIN EmployeeProjects EP ON E.EmpID = EP.EmpID
+LEFT JOIN Projects P ON EP.ProjectID = P.ProjectID
+WHERE P.DeptID != E.DeptID;",PASS,0,0,,16.11
+42,hard,multi_join_sort_limit,Find the top 3 highest earning employees along with their department and role.,"SELECT e.Name, e.Role, d.DeptName, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID ORDER BY e.Salary DESC LIMIT 3;","SELECT E.EmpID, E.Name, E.Role, E.Salary, D.DeptName
+FROM Employees E
+JOIN Departments D ON E.DeptID = D.DeptID
+WHERE E.Status = 'Active'
+ORDER BY E.Salary DESC
+LIMIT 3;",FAIL,3,3,,16.08
+43,hard,left_join_null,Which employees have no skills recorded in the system?,SELECT e.Name FROM Employees e LEFT JOIN EmployeeSkills es ON e.EmpID = es.EmpID WHERE es.EmpID IS NULL;,"SELECT E.Name
+FROM Employees E
+LEFT JOIN EmployeeSkills ES ON E.EmpID = ES.EmpID
+WHERE ES.EmpID IS NULL;",PASS,1,1,,15.22
+44,hard,correlated_subquery,"For each department, show the highest paid employee.","SELECT d.DeptName, e.Name, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE e.Salary = (SELECT MAX(e2.Salary) FROM Employees e2 WHERE e2.DeptID = e.DeptID) ORDER BY e.Salary DESC;","SELECT 
+  e.DeptID,
+  e.Name AS HighestPaidEmployee,
+  e.Salary AS HighestSalary
+FROM 
+  Employees e
+  JOIN (
+    SELECT 
+      DeptID,
+      MAX(Salary) AS MaxSalary
+    FROM 
+      Employees
+    GROUP BY 
+      DeptID
+  ) m ON e.DeptID = m.DeptID AND e.Salary = m.MaxSalary;",FAIL,5,5,,28.26
+45,hard,multi_join_group_by,How many employees have each proficiency level in Python?,"SELECT es.Proficiency, COUNT(*) AS EmployeeCount FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python' GROUP BY es.Proficiency ORDER BY EmployeeCount DESC;","SELECT ES.Proficiency, COUNT(*) as EmployeeCount
+FROM EmployeeSkills ES
+INNER JOIN Skills S ON ES.SkillID = S.SkillID
+WHERE S.SkillName = 'Python'
+GROUP BY ES.Proficiency;",PASS,2,2,,15.01
+46,hard,join_aggregate,"For each project, show the team size and total hours logged.","SELECT p.ProjectName, COUNT(ep.EmpID) AS TeamSize, SUM(ep.HoursLogged) AS TotalHours FROM Projects p JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID GROUP BY p.ProjectID, p.ProjectName ORDER BY TotalHours DESC;","SELECT 
+  p.ProjectID,
+  p.ProjectName,
+  COUNT(ep.EmpID) AS TeamSize,
+  SUM(ep.HoursLogged) AS TotalHoursLogged
+FROM 
+  Projects p
+  JOIN EmployeeProjects ep ON p.ProjectID = ep.ProjectID
+GROUP BY 
+  p.ProjectID, p.ProjectName;",PASS,10,10,,15.03
+47,hard,multi_join_intersection,Find employees who are a project Lead and also have Expert proficiency in at least one skill.,SELECT DISTINCT e.Name FROM Employees e JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID JOIN EmployeeSkills es ON e.EmpID = es.EmpID WHERE ep.Role = 'Lead' AND es.Proficiency = 'Expert';,"SELECT e.*
+FROM Employees e
+INNER JOIN (
+  SELECT EmpID
+  FROM EmployeeProjects
+  WHERE Role = 'Lead'
+) AS lead_employees ON e.EmpID = lead_employees.EmpID
+INNER JOIN (
+  SELECT EmpID
+  FROM EmployeeSkills
+  WHERE Proficiency = 'Expert'
+  GROUP BY EmpID
+  HAVING COUNT(DISTINCT SkillID) > 0
+) AS expert_employees ON e.EmpID = expert_employees.EmpID;",FAIL,7,9,,16.57
+48,hard,self_join,Which employees directly report to Amit Verma?,"SELECT e.Name, e.Role FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID WHERE m.Name = 'Amit Verma';","SELECT e1.Name
+FROM Employees e1
+JOIN Employees e2 ON e1.ManagerID = e2.EmpID
+WHERE e2.Name = 'Amit Verma';",FAIL,1,1,,16.46
+49,hard,subquery_not_in,Which skills are not held at Expert level by any employee?,SELECT s.SkillName FROM Skills s WHERE s.SkillID NOT IN (SELECT es.SkillID FROM EmployeeSkills es WHERE es.Proficiency = 'Expert');,"SELECT s.SkillName 
+FROM Skills s 
+LEFT JOIN EmployeeSkills es ON s.SkillID = es.SkillID AND es.Proficiency = 'Expert' 
+WHERE es.SkillID IS NULL;",PASS,0,0,,15.19
+50,hard,nested_subquery_aggregate,What is the average number of projects per active employee?,"SELECT AVG(ProjectCount) AS AvgProjectsPerEmployee FROM (SELECT e.EmpID, COUNT(ep.ProjectID) AS ProjectCount FROM Employees e LEFT JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID WHERE e.Status = 'Active' GROUP BY e.EmpID) AS sub;","SELECT AVG(DISTINCT ep.ProjectID) AS avg_projects_per_active_employee
+FROM Employees e
+JOIN EmployeeProjects ep ON e.EmpID = ep.EmpID
+WHERE e.EndDate IS NOT NULL;",AGENT_ERROR,1,0,,36.22

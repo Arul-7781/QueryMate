@@ -1,0 +1,575 @@
+[
+  {
+    "id": 1,
+    "difficulty": "easy",
+    "category": "basic_select",
+    "tables_used": [
+      "Employees"
+    ],
+    "question": "List all employees.",
+    "sql": "SELECT * FROM Employees;"
+  },
+  {
+    "id": 5,
+    "difficulty": "easy",
+    "category": "aggregate",
+    "tables_used": [
+      "Employees"
+    ],
+    "question": "What is the highest salary among all employees?",
+    "sql": "SELECT MAX(Salary) AS MaxSalary FROM Employees;"
+  },
+  {
+    "id": 9,
+    "difficulty": "easy",
+    "category": "basic_select",
+    "tables_used": [
+      "Locations"
+    ],
+    "question": "List all office locations with their city and country.",
+    "sql": "SELECT City, Country FROM Locations;"
+  },
+  {
+    "id": 11,
+    "difficulty": "easy",
+    "category": "filter",
+    "tables_used": [
+      "Employees"
+    ],
+    "question": "List all employees who joined after January 1, 2023.",
+    "sql": "SELECT Name, JoinDate FROM Employees WHERE JoinDate > '2023-01-01';"
+  },
+  {
+    "id": 15,
+    "difficulty": "easy",
+    "category": "filter",
+    "tables_used": [
+      "Employees"
+    ],
+    "question": "List the names of all employees in the IT department.",
+    "sql": "SELECT Name FROM Employees WHERE DeptID = 1;"
+  },
+  {
+    "id": 17,
+    "difficulty": "medium",
+    "category": "join_aggregate",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the average salary in each department?",
+    "sql": "SELECT d.DeptName, AVG(e.Salary) AS AvgSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID GROUP BY d.DeptID, d.DeptName;"
+  },
+  {
+    "id": 22,
+    "difficulty": "medium",
+    "category": "multi_join_filter",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which employees know Python?",
+    "sql": "SELECT e.Name FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python';"
+  },
+  {
+    "id": 30,
+    "difficulty": "medium",
+    "category": "filter",
+    "tables_used": [
+      "Projects"
+    ],
+    "question": "Which projects have been completed?",
+    "sql": "SELECT ProjectName, EndDate FROM Projects WHERE Status = 'Completed';"
+  },
+  {
+    "id": 31,
+    "difficulty": "medium",
+    "category": "multi_join_filter",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "Which employees belong to the Operations department?",
+    "sql": "SELECT e.Name, e.Role FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations';"
+  },
+  {
+    "id": 38,
+    "difficulty": "hard",
+    "category": "subquery_intersection",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which employees know both Python and SQL?",
+    "sql": "SELECT e.Name FROM Employees e WHERE e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python') AND e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'SQL');"
+  },
+  {
+    "id": 42,
+    "difficulty": "hard",
+    "category": "multi_join_sort_limit",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "Find the top 3 highest earning employees along with their department and role.",
+    "sql": "SELECT e.Name, e.Role, d.DeptName, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID ORDER BY e.Salary DESC LIMIT 3;"
+  },
+  {
+    "id": 45,
+    "difficulty": "hard",
+    "category": "multi_join_group_by",
+    "tables_used": [
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "How many employees have each proficiency level in Python?",
+    "sql": "SELECT es.Proficiency, COUNT(*) AS EmployeeCount FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Python' GROUP BY es.Proficiency ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 51,
+    "difficulty": "easy",
+    "category": "dept_filter_count",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "How many active employees are in the IT department?",
+    "sql": "SELECT COUNT(*) AS ActiveEmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT' AND e.Status = 'Active';"
+  },
+  {
+    "id": 54,
+    "difficulty": "medium",
+    "category": "dept_filter_sort",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "List employees in IT ordered by salary descending.",
+    "sql": "SELECT e.Name, e.Role, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT' ORDER BY e.Salary DESC;"
+  },
+  {
+    "id": 58,
+    "difficulty": "medium",
+    "category": "dept_hours_sum",
+    "tables_used": [
+      "EmployeeProjects",
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the total hours logged by employees from IT across all projects?",
+    "sql": "SELECT SUM(ep.HoursLogged) AS TotalHours FROM EmployeeProjects ep JOIN Employees e ON ep.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'IT';"
+  },
+  {
+    "id": 64,
+    "difficulty": "medium",
+    "category": "dept_filter_sort",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "List employees in Sales ordered by salary descending.",
+    "sql": "SELECT e.Name, e.Role, e.Salary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Sales' ORDER BY e.Salary DESC;"
+  },
+  {
+    "id": 65,
+    "difficulty": "easy",
+    "category": "dept_projects_count",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "question": "How many projects are owned by Sales?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'Sales';"
+  },
+  {
+    "id": 72,
+    "difficulty": "medium",
+    "category": "dept_filter_aggregate",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the average salary of active employees in HR?",
+    "sql": "SELECT AVG(e.Salary) AS AvgActiveSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR' AND e.Status = 'Active';"
+  },
+  {
+    "id": 75,
+    "difficulty": "easy",
+    "category": "dept_projects_count",
+    "tables_used": [
+      "Projects",
+      "Departments"
+    ],
+    "question": "How many projects are owned by HR?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID WHERE d.DeptName = 'HR';"
+  },
+  {
+    "id": 79,
+    "difficulty": "hard",
+    "category": "dept_distinct_skills",
+    "tables_used": [
+      "EmployeeSkills",
+      "Employees",
+      "Departments"
+    ],
+    "question": "How many distinct skills are present among employees in HR?",
+    "sql": "SELECT COUNT(DISTINCT es.SkillID) AS DistinctSkillCount FROM EmployeeSkills es JOIN Employees e ON es.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'HR';"
+  },
+  {
+    "id": 80,
+    "difficulty": "hard",
+    "category": "dept_manager_reports",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "For the HR department, show managers and their number of direct reports.",
+    "sql": "SELECT m.Name AS ManagerName, COUNT(e.EmpID) AS DirectReports FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID JOIN Departments d ON m.DeptID = d.DeptID WHERE d.DeptName = 'HR' GROUP BY m.EmpID, m.Name ORDER BY DirectReports DESC;"
+  },
+  {
+    "id": 82,
+    "difficulty": "medium",
+    "category": "dept_filter_aggregate",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the average salary of active employees in Finance?",
+    "sql": "SELECT AVG(e.Salary) AS AvgActiveSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Finance' AND e.Status = 'Active';"
+  },
+  {
+    "id": 90,
+    "difficulty": "hard",
+    "category": "dept_manager_reports",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "For the Finance department, show managers and their number of direct reports.",
+    "sql": "SELECT m.Name AS ManagerName, COUNT(e.EmpID) AS DirectReports FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID JOIN Departments d ON m.DeptID = d.DeptID WHERE d.DeptName = 'Finance' GROUP BY m.EmpID, m.Name ORDER BY DirectReports DESC;"
+  },
+  {
+    "id": 92,
+    "difficulty": "medium",
+    "category": "dept_filter_aggregate",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the average salary of active employees in Operations?",
+    "sql": "SELECT AVG(e.Salary) AS AvgActiveSalary FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations' AND e.Status = 'Active';"
+  },
+  {
+    "id": 98,
+    "difficulty": "medium",
+    "category": "dept_hours_sum",
+    "tables_used": [
+      "EmployeeProjects",
+      "Employees",
+      "Departments"
+    ],
+    "question": "What is the total hours logged by employees from Operations across all projects?",
+    "sql": "SELECT SUM(ep.HoursLogged) AS TotalHours FROM EmployeeProjects ep JOIN Employees e ON ep.EmpID = e.EmpID JOIN Departments d ON e.DeptID = d.DeptID WHERE d.DeptName = 'Operations';"
+  },
+  {
+    "id": 100,
+    "difficulty": "hard",
+    "category": "dept_manager_reports",
+    "tables_used": [
+      "Employees",
+      "Departments"
+    ],
+    "question": "For the Operations department, show managers and their number of direct reports.",
+    "sql": "SELECT m.Name AS ManagerName, COUNT(e.EmpID) AS DirectReports FROM Employees e JOIN Employees m ON e.ManagerID = m.EmpID JOIN Departments d ON m.DeptID = d.DeptID WHERE d.DeptName = 'Operations' GROUP BY m.EmpID, m.Name ORDER BY DirectReports DESC;"
+  },
+  {
+    "id": 106,
+    "difficulty": "easy",
+    "category": "skill_count",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "How many employees have the SQL skill?",
+    "sql": "SELECT COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'SQL';"
+  },
+  {
+    "id": 110,
+    "difficulty": "hard",
+    "category": "skill_department_distribution",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which departments have employees with SQL, and how many such employees are there per department?",
+    "sql": "SELECT d.DeptName, COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'SQL' GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 112,
+    "difficulty": "medium",
+    "category": "skill_list_proficiency",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "List employees with AWS skill and their proficiency.",
+    "sql": "SELECT e.Name, es.Proficiency FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' ORDER BY e.Name;"
+  },
+  {
+    "id": 114,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have AWS?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS';"
+  },
+  {
+    "id": 115,
+    "difficulty": "hard",
+    "category": "skill_department_distribution",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which departments have employees with AWS, and how many such employees are there per department?",
+    "sql": "SELECT d.DeptName, COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'AWS' GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 118,
+    "difficulty": "medium",
+    "category": "skill_expert_count",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "How many employees are expert in Machine Learning?",
+    "sql": "SELECT COUNT(DISTINCT e.EmpID) AS ExpertCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning' AND es.Proficiency = 'Expert';"
+  },
+  {
+    "id": 119,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have Machine Learning?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Machine Learning';"
+  },
+  {
+    "id": 124,
+    "difficulty": "medium",
+    "category": "skill_salary_avg",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "What is the average salary of employees who have Leadership?",
+    "sql": "SELECT AVG(e.Salary) AS AvgSalaryWithSkill FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Leadership';"
+  },
+  {
+    "id": 130,
+    "difficulty": "hard",
+    "category": "skill_department_distribution",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which departments have employees with Communication, and how many such employees are there per department?",
+    "sql": "SELECT d.DeptName, COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Communication' GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 132,
+    "difficulty": "medium",
+    "category": "skill_list_proficiency",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "List employees with Financial Modeling skill and their proficiency.",
+    "sql": "SELECT e.Name, es.Proficiency FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Financial Modeling' ORDER BY e.Name;"
+  },
+  {
+    "id": 140,
+    "difficulty": "hard",
+    "category": "skill_department_distribution",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "Which departments have employees with Recruitment, and how many such employees are there per department?",
+    "sql": "SELECT d.DeptName, COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Recruitment' GROUP BY d.DeptID, d.DeptName ORDER BY EmployeeCount DESC;"
+  },
+  {
+    "id": 141,
+    "difficulty": "easy",
+    "category": "skill_count",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "How many employees have the Docker skill?",
+    "sql": "SELECT COUNT(DISTINCT e.EmpID) AS EmployeeCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Docker';"
+  },
+  {
+    "id": 148,
+    "difficulty": "medium",
+    "category": "skill_expert_count",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "How many employees are expert in Data Analysis?",
+    "sql": "SELECT COUNT(DISTINCT e.EmpID) AS ExpertCount FROM Employees e JOIN EmployeeSkills es ON e.EmpID = es.EmpID JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Data Analysis' AND es.Proficiency = 'Expert';"
+  },
+  {
+    "id": 158,
+    "difficulty": "medium",
+    "category": "location_project_count",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "question": "How many projects are managed from Mumbai?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Mumbai';"
+  },
+  {
+    "id": 159,
+    "difficulty": "medium",
+    "category": "location_project_budget",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "question": "What is the total project budget for projects in Mumbai?",
+    "sql": "SELECT SUM(p.Budget) AS TotalBudget FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Mumbai';"
+  },
+  {
+    "id": 161,
+    "difficulty": "medium",
+    "category": "location_employee_count",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "Locations"
+    ],
+    "question": "How many employees are based in Delhi?",
+    "sql": "SELECT COUNT(*) AS EmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Delhi';"
+  },
+  {
+    "id": 163,
+    "difficulty": "medium",
+    "category": "location_project_count",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "question": "How many projects are managed from Delhi?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Delhi';"
+  },
+  {
+    "id": 165,
+    "difficulty": "medium",
+    "category": "location_active_employee_count",
+    "tables_used": [
+      "Employees",
+      "Departments",
+      "Locations"
+    ],
+    "question": "How many active employees are in Delhi?",
+    "sql": "SELECT COUNT(*) AS ActiveEmployeeCount FROM Employees e JOIN Departments d ON e.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Delhi' AND e.Status = 'Active';"
+  },
+  {
+    "id": 168,
+    "difficulty": "medium",
+    "category": "location_project_count",
+    "tables_used": [
+      "Projects",
+      "Departments",
+      "Locations"
+    ],
+    "question": "How many projects are managed from Chennai?",
+    "sql": "SELECT COUNT(*) AS ProjectCount FROM Projects p JOIN Departments d ON p.DeptID = d.DeptID JOIN Locations l ON d.LocationID = l.LocationID WHERE l.City = 'Chennai';"
+  },
+  {
+    "id": 182,
+    "difficulty": "hard",
+    "category": "set_intersection",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "List employees who have both Leadership and Communication skills.",
+    "sql": "SELECT e.Name FROM Employees e WHERE e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Leadership') AND e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.SkillName = 'Communication') ORDER BY e.Name;"
+  },
+  {
+    "id": 183,
+    "difficulty": "hard",
+    "category": "set_intersection",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills",
+      "Skills"
+    ],
+    "question": "List employees who have at least one technical skill and at least one soft skill.",
+    "sql": "SELECT e.Name FROM Employees e WHERE e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.Category = 'Technical') AND e.EmpID IN (SELECT es.EmpID FROM EmployeeSkills es JOIN Skills s ON es.SkillID = s.SkillID WHERE s.Category = 'Soft') ORDER BY e.Name;"
+  },
+  {
+    "id": 184,
+    "difficulty": "hard",
+    "category": "not_in_subquery",
+    "tables_used": [
+      "Departments",
+      "Projects"
+    ],
+    "question": "Which departments have no completed projects?",
+    "sql": "SELECT d.DeptName FROM Departments d WHERE d.DeptID NOT IN (SELECT DISTINCT p.DeptID FROM Projects p WHERE p.Status = 'Completed') ORDER BY d.DeptName;"
+  },
+  {
+    "id": 187,
+    "difficulty": "medium",
+    "category": "date_filter",
+    "tables_used": [
+      "Projects"
+    ],
+    "question": "List projects that started in 2025 and are not completed.",
+    "sql": "SELECT ProjectName, Status, StartDate FROM Projects WHERE StartDate >= '2025-01-01' AND Status != 'Completed' ORDER BY StartDate;"
+  },
+  {
+    "id": 196,
+    "difficulty": "medium",
+    "category": "left_join_null",
+    "tables_used": [
+      "Employees",
+      "EmployeeSkills"
+    ],
+    "question": "How many employees have zero recorded skills?",
+    "sql": "SELECT COUNT(*) AS EmployeesWithoutSkills FROM Employees e LEFT JOIN EmployeeSkills es ON e.EmpID = es.EmpID WHERE es.EmpID IS NULL;"
+  }
+]

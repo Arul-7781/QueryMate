@@ -1,0 +1,35 @@
+{
+  "seed": 20260406,
+  "stratify_key": "difficulty",
+  "source_files": {
+    "rebalanced": "tests/golden_set1_balanced_1000.json",
+    "gold": "tests/golden_set.json"
+  },
+  "sizes": {
+    "train": 850,
+    "eval": 50,
+    "holdout": 100
+  },
+  "difficulty_distribution": {
+    "train": {
+      "easy": 250,
+      "medium": 354,
+      "hard": 246
+    },
+    "eval": {
+      "easy": 10,
+      "medium": 26,
+      "hard": 14
+    },
+    "holdout": {
+      "easy": 29,
+      "medium": 42,
+      "hard": 29
+    }
+  },
+  "overlap_checks": {
+    "pair_overlap": 0,
+    "question_overlap": 0,
+    "sql_overlap": 0
+  }
+}
