@@ -2,13 +2,6 @@
 
 Submission-ready repository for the PES University AI project on resource-constrained text-to-SQL.
 
-## College Submission Note
-
-- Repository URL / Drive URL: https://github.com/Arul-7781/QueryMate.git
-- If this repository is private, add reviewer access for GitHub user: gsrinivasa-pes
-- Main branch status: this README is prepared for final submission after merging validated work into main
-- For evaluation, reviewers only need repository access and notebook execution.
-
 ## Important Evaluation Note
 
 The primary reproduction path for this submission is the notebook workflow in [notebooks/](notebooks/).
